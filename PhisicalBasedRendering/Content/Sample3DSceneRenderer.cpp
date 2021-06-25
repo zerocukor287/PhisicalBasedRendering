@@ -19,6 +19,41 @@ Platform::String^ TrackingKey = "Tracking";
 
 XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1.000000000f } } };
 
+static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned short>& indices) {
+	vertices =
+	{
+		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+		{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+		{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+		{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+		{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+	};
+
+	indices =
+	{
+		0, 2, 1, // -x
+		1, 2, 3,
+
+		4, 5, 6, // +x
+		5, 7, 6,
+
+		0, 1, 5, // -y
+		0, 5, 4,
+
+		2, 6, 7, // +y
+		2, 7, 3,
+
+		0, 4, 6, // -z
+		0, 6, 2,
+
+		1, 3, 7, // +z
+		1, 7, 5,
+	};
+}
+
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_loadingComplete(false),
@@ -119,19 +154,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
         NAME_D3D12_OBJECT(m_commandList);
 
 		// Cube vertices. Each vertex has a position and a color.
-		std::vector<VertexPositionColor> cubeVertices =
-		{
-			{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-		};
+		std::vector<VertexPositionColor> sphereVertices;
+		std::vector<unsigned short> sphereIndices;
 
-		const UINT vertexBufferSize = sizeof(VertexPositionColor) * cubeVertices.size();
+		fillSphere(sphereVertices, sphereIndices);
+
+		const UINT vertexBufferSize = sizeof(VertexPositionColor) * sphereVertices.size();
+
+		const UINT indexBufferSize = sizeof(unsigned short) * sphereIndices.size();
 
 		// Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -161,7 +191,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the vertex buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA vertexData = {};
-			vertexData.pData = reinterpret_cast<BYTE*>(&*cubeVertices.begin());
+			vertexData.pData = reinterpret_cast<BYTE*>(&*sphereVertices.begin());
 			vertexData.RowPitch = vertexBufferSize;
 			vertexData.SlicePitch = vertexData.RowPitch;
 
@@ -172,31 +202,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			m_commandList->ResourceBarrier(1, &vertexBufferResourceBarrier);
 		}
 
-		// Load mesh indices. Each trio of indices represents a triangle to be rendered on the screen.
-		// For example: 0,2,1 means that the vertices with indexes 0, 2 and 1 from the vertex buffer compose the
-		// first triangle of this mesh.
-		std::vector<unsigned short> cubeIndices =
-		{
-			0, 2, 1, // -x
-			1, 2, 3,
-
-			4, 5, 6, // +x
-			5, 7, 6,
-
-			0, 1, 5, // -y
-			0, 5, 4,
-
-			2, 6, 7, // +y
-			2, 7, 3,
-
-			0, 4, 6, // -z
-			0, 6, 2,
-
-			1, 3, 7, // +z
-			1, 7, 5,
-		};
-
-		const UINT indexBufferSize = sizeof(unsigned short) * cubeIndices.size();
 
 		// Create the index buffer resource in the GPU's default heap and copy index data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -224,7 +229,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the index buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA indexData = {};
-			indexData.pData = reinterpret_cast<BYTE*>(&*cubeIndices.begin());
+			indexData.pData = reinterpret_cast<BYTE*>(&*sphereIndices.begin());
 			indexData.RowPitch = indexBufferSize;
 			indexData.SlicePitch = indexData.RowPitch;
 
@@ -288,10 +293,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Create vertex/index buffer views.
 		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 		m_vertexBufferView.StrideInBytes = sizeof(VertexPositionColor);
-		m_vertexBufferView.SizeInBytes = sizeof(VertexPositionColor) * cubeVertices.size();
+		m_vertexBufferView.SizeInBytes = sizeof(VertexPositionColor) * sphereVertices.size();
 
 		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.SizeInBytes = sizeof(unsigned short) * cubeIndices.size();
+		m_indexBufferView.SizeInBytes = sizeof(unsigned short) * sphereIndices.size();
 		m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
 		// Wait for the command list to finish executing; the vertex/index buffers need to be uploaded to the GPU before the upload resources go out of scope.
