@@ -175,7 +175,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Load mesh indices. Each trio of indices represents a triangle to be rendered on the screen.
 		// For example: 0,2,1 means that the vertices with indexes 0, 2 and 1 from the vertex buffer compose the
 		// first triangle of this mesh.
-		unsigned short cubeIndices[] =
+		std::vector<unsigned short> cubeIndices =
 		{
 			0, 2, 1, // -x
 			1, 2, 3,
@@ -196,7 +196,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			1, 7, 5,
 		};
 
-		const UINT indexBufferSize = sizeof(cubeIndices);
+		const UINT indexBufferSize = sizeof(unsigned short) * cubeIndices.size();
 
 		// Create the index buffer resource in the GPU's default heap and copy index data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -224,7 +224,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the index buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA indexData = {};
-			indexData.pData = reinterpret_cast<BYTE*>(cubeIndices);
+			indexData.pData = reinterpret_cast<BYTE*>(&*cubeIndices.begin());
 			indexData.RowPitch = indexBufferSize;
 			indexData.SlicePitch = indexData.RowPitch;
 
@@ -291,7 +291,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		m_vertexBufferView.SizeInBytes = sizeof(VertexPositionColor) * cubeVertices.size();
 
 		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.SizeInBytes = sizeof(cubeIndices);
+		m_indexBufferView.SizeInBytes = sizeof(unsigned short) * cubeIndices.size();
 		m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
 		// Wait for the command list to finish executing; the vertex/index buffers need to be uploaded to the GPU before the upload resources go out of scope.
