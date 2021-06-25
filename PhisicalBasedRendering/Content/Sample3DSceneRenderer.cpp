@@ -119,7 +119,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
         NAME_D3D12_OBJECT(m_commandList);
 
 		// Cube vertices. Each vertex has a position and a color.
-		VertexPositionColor cubeVertices[] =
+		std::vector<VertexPositionColor> cubeVertices =
 		{
 			{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
 			{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
@@ -131,7 +131,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
-		const UINT vertexBufferSize = sizeof(cubeVertices);
+		const UINT vertexBufferSize = sizeof(VertexPositionColor) * cubeVertices.size();
 
 		// Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -161,7 +161,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the vertex buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA vertexData = {};
-			vertexData.pData = reinterpret_cast<BYTE*>(cubeVertices);
+			vertexData.pData = reinterpret_cast<BYTE*>(&*cubeVertices.begin());
 			vertexData.RowPitch = vertexBufferSize;
 			vertexData.SlicePitch = vertexData.RowPitch;
 
@@ -288,7 +288,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Create vertex/index buffer views.
 		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 		m_vertexBufferView.StrideInBytes = sizeof(VertexPositionColor);
-		m_vertexBufferView.SizeInBytes = sizeof(cubeVertices);
+		m_vertexBufferView.SizeInBytes = sizeof(VertexPositionColor) * cubeVertices.size();
 
 		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
 		m_indexBufferView.SizeInBytes = sizeof(cubeIndices);
