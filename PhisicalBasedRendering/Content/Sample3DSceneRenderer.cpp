@@ -17,6 +17,8 @@ using namespace Windows::Storage;
 Platform::String^ AngleKey = "Angle";
 Platform::String^ TrackingKey = "Tracking";
 
+XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1.000000000f } } };
+
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_loadingComplete(false),
@@ -466,7 +468,7 @@ bool Sample3DSceneRenderer::Render()
 		// Record drawing commands.
 		D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView = m_deviceResources->GetRenderTargetView();
 		D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_deviceResources->GetDepthStencilView();
-		m_commandList->ClearRenderTargetView(renderTargetView, DirectX::Colors::CornflowerBlue, 0, nullptr);
+		m_commandList->ClearRenderTargetView(renderTargetView, VeryDarkVeryGray, 0, nullptr);
 		m_commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		m_commandList->OMSetRenderTargets(1, &renderTargetView, false, &depthStencilView);
