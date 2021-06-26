@@ -191,7 +191,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the vertex buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA vertexData = {};
-			vertexData.pData = reinterpret_cast<BYTE*>(&*sphereVertices.begin());
+			vertexData.pData = reinterpret_cast<BYTE*>(&sphereVertices[0]);
 			vertexData.RowPitch = vertexBufferSize;
 			vertexData.SlicePitch = vertexData.RowPitch;
 
@@ -229,7 +229,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the index buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA indexData = {};
-			indexData.pData = reinterpret_cast<BYTE*>(&*sphereIndices.begin());
+			indexData.pData = reinterpret_cast<BYTE*>(&sphereIndices[0]);
 			indexData.RowPitch = indexBufferSize;
 			indexData.SlicePitch = indexData.RowPitch;
 
