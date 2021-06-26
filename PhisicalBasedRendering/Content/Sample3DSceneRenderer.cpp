@@ -18,40 +18,51 @@ Platform::String^ AngleKey = "Angle";
 Platform::String^ TrackingKey = "Tracking";
 
 XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1.000000000f } } };
+XMFLOAT3 purple = { 0.68f, 0.18f, 0.68f };
+
+const float PI = 3.1415927f;
 
 static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
-	vertices =
-	{
-		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-	};
+	float radius = 0.75f;
+	unsigned int rings = 5;
+	unsigned int sectors = 7;
 
-	indices =
-	{
-		0, 2, 1, // -x
-		1, 2, 3,
+	// Generate a sphere
+	const auto RingsRecip = 1.0f / (float)(rings - 1);
+	const auto SectorsRecip = 1.0f / (float)(sectors - 1);
+	unsigned int countRings, countSectors;
 
-		4, 5, 6, // +x
-		5, 7, 6,
+	vertices.resize(rings * sectors);
 
-		0, 1, 5, // -y
-		0, 5, 4,
+	auto v = vertices.begin();
 
-		2, 6, 7, // +y
-		2, 7, 3,
+	// Calculate vertices' position
+	for (countRings = 0; countRings < rings; countRings++) {
+		const auto y = static_cast<float>(sin(-PI / 2 + PI * countRings * RingsRecip) * radius);
 
-		0, 4, 6, // -z
-		0, 6, 2,
+		for (countSectors = 0; countSectors < sectors; countSectors++) {
+			const auto x = static_cast<float>(cos(2 * PI * countSectors * SectorsRecip)); // *sin(PI * countRings * RingsRecip));
+			const auto z = static_cast<float>(sin(2 * PI * countSectors * SectorsRecip)); // *sin(PI * countRings * RingsRecip));
 
-		1, 3, 7, // +z
-		1, 7, 5,
-	};
+			*v++ = { { x * radius, y, z * radius }, {purple.x * abs(y),purple.y * abs(y), purple.z * abs(y)} };
+		}
+	}
+
+	// Calculate indices 
+	indices.resize(rings * sectors * 6);
+	auto i = indices.begin();
+	for (countRings = 0; countRings < rings - 1; countRings++) {
+		for (countSectors = 0; countSectors < sectors - 1; countSectors++) {
+
+			*i++ = (countRings + 0) * sectors + countSectors;				// added for half-symmetry
+			*i++ = (countRings + 0) * sectors + (countSectors + 1);
+			*i++ = (countRings + 1) * sectors + (countSectors + 1);
+
+			*i++ = (countRings + 0) * sectors + countSectors;
+			*i++ = (countRings + 1) * sectors + (countSectors + 1);
+			*i++ = (countRings + 1) * sectors + countSectors;
+		}
+	}
 }
 
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
