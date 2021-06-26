@@ -18,11 +18,11 @@ Platform::String^ AngleKey = "Angle";
 Platform::String^ TrackingKey = "Tracking";
 
 XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1.000000000f } } };
-XMFLOAT3 purple = { 0.68f, 0.18f, 0.68f };
 
 const float PI = 3.1415927f;
 
 static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
+	DirectX::XMFLOAT3 center{ 0.2f,0.0f,0.0f };
 	float radius = 0.75f;
 	unsigned int rings = 15;
 	unsigned int sectors = 15;
@@ -43,8 +43,9 @@ static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<u
 		for (countSectors = 0; countSectors < sectors; countSectors++) {
 			const auto x = static_cast<float>(cos(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
 			const auto z = static_cast<float>(sin(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
-
-			*v++ = { { x * radius, y, z * radius }, purple };
+			DirectX::XMFLOAT3 point{ x * radius + center.x, y + center.y, z * radius + center.z };
+			DirectX::XMFLOAT3 normal{ x * radius - center.x, y - center.y, z * radius - center.z };
+			*v++ = { point, normal };
 		}
 	}
 
@@ -131,7 +132,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		static const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		};
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
