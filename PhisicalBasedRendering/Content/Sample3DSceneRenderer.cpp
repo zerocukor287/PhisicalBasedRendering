@@ -22,7 +22,7 @@ XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1
 const float PI = 3.1415927f;
 
 static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
-	DirectX::XMFLOAT3 center{ 0.2f,0.0f,0.0f };
+	DirectX::XMFLOAT3 center{ 0.0f,0.0f,0.0f };
 	float radius = 0.75f;
 	unsigned int rings = 15;
 	unsigned int sectors = 15;
@@ -44,7 +44,7 @@ static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<u
 			const auto x = static_cast<float>(cos(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
 			const auto z = static_cast<float>(sin(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
 			DirectX::XMFLOAT3 point{ x * radius + center.x, y + center.y, z * radius + center.z };
-			DirectX::XMFLOAT3 normal{ x * radius - center.x, y - center.y, z * radius - center.z };
+			DirectX::XMFLOAT3 normal{ x * radius, y, z * radius };
 			*v++ = { point, normal };
 		}
 	}
