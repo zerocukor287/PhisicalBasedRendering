@@ -19,7 +19,7 @@ Platform::String^ TrackingKey = "Tracking";
 
 XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1.000000000f } } };
 
-static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned short>& indices) {
+static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
 	vertices =
 	{
 		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
@@ -155,13 +155,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		// Cube vertices. Each vertex has a position and a color.
 		std::vector<VertexPositionColor> sphereVertices;
-		std::vector<unsigned short> sphereIndices;
+		std::vector<unsigned int> sphereIndices;
 
 		fillSphere(sphereVertices, sphereIndices);
 
 		const UINT vertexBufferSize = sizeof(VertexPositionColor) * sphereVertices.size();
 
-		const UINT indexBufferSize = sizeof(unsigned short) * sphereIndices.size();
+		const UINT indexBufferSize = sizeof(unsigned int) * sphereIndices.size();
 
 		// Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -296,8 +296,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		m_vertexBufferView.SizeInBytes = sizeof(VertexPositionColor) * sphereVertices.size();
 
 		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.SizeInBytes = sizeof(unsigned short) * sphereIndices.size();
-		m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+		m_indexBufferView.SizeInBytes = sizeof(unsigned int) * sphereIndices.size();
+		m_indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 
 		// Wait for the command list to finish executing; the vertex/index buffers need to be uploaded to the GPU before the upload resources go out of scope.
 		m_deviceResources->WaitForGpu();
