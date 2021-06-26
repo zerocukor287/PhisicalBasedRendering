@@ -16,6 +16,7 @@ struct PixelShaderInput
 	float4 pos : SV_POSITION;
 	float3 usablePos : POSITION;
 	float3 lightPos : POSITION1;
+	float3 view : VIEW;
 	float3 normal : NORMAL;
 };
 
@@ -29,7 +30,6 @@ PixelShaderInput main(VertexShaderInput input)
 	pos = mul(pos, projection);
 	output.pos = pos;
 	output.usablePos = pos;
-	output.lightPos = float3( 0.2f, 0.75f, 1.25f );
 
 	float4 normal = float4(input.normal, 1.0f);
 
@@ -37,6 +37,9 @@ PixelShaderInput main(VertexShaderInput input)
 	normal = mul(normal, view);
 	normal = mul(normal, projection);
 	output.normal = normalize(normal);
+
+	output.lightPos = float3(0.2f, 0.75f, 1.25f);
+	output.view = float3(0.0f, 0.7f, 1.5f);
 
 	return output;
 }
