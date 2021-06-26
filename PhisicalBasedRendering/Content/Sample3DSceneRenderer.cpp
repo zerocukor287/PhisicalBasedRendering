@@ -18,40 +18,51 @@ Platform::String^ AngleKey = "Angle";
 Platform::String^ TrackingKey = "Tracking";
 
 XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1.000000000f } } };
+XMFLOAT3 purple = { 0.68f, 0.18f, 0.68f };
 
-static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned short>& indices) {
-	vertices =
-	{
-		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-	};
+const float PI = 3.1415927f;
 
-	indices =
-	{
-		0, 2, 1, // -x
-		1, 2, 3,
+static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
+	float radius = 0.75f;
+	unsigned int rings = 15;
+	unsigned int sectors = 15;
 
-		4, 5, 6, // +x
-		5, 7, 6,
+	// Generate a sphere
+	const auto RingsRecip = 1.0f / (float)(rings - 1);
+	const auto SectorsRecip = 1.0f / (float)(sectors - 1);
+	unsigned int countRings, countSectors;
 
-		0, 1, 5, // -y
-		0, 5, 4,
+	vertices.resize(rings * sectors);
 
-		2, 6, 7, // +y
-		2, 7, 3,
+	auto v = vertices.begin();
 
-		0, 4, 6, // -z
-		0, 6, 2,
+	// Calculate vertices' position
+	for (countRings = 0; countRings < rings; countRings++) {
+		const auto y = static_cast<float>(sin(-PI / 2 + PI * countRings * RingsRecip) * radius);
 
-		1, 3, 7, // +z
-		1, 7, 5,
-	};
+		for (countSectors = 0; countSectors < sectors; countSectors++) {
+			const auto x = static_cast<float>(cos(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
+			const auto z = static_cast<float>(sin(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
+
+			*v++ = { { x * radius, y, z * radius }, purple };
+		}
+	}
+
+	// Calculate indices 
+	indices.resize(rings * sectors * 6);
+	auto i = indices.begin();
+	for (countRings = 0; countRings < rings - 1; countRings++) {
+		for (countSectors = 0; countSectors < sectors - 1; countSectors++) {
+
+			*i++ = (countRings + 0) * sectors + countSectors;				// added for half-symmetry
+			*i++ = (countRings + 0) * sectors + (countSectors + 1);
+			*i++ = (countRings + 1) * sectors + (countSectors + 1);
+
+			*i++ = (countRings + 0) * sectors + countSectors;
+			*i++ = (countRings + 1) * sectors + (countSectors + 1);
+			*i++ = (countRings + 1) * sectors + countSectors;
+		}
+	}
 }
 
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
@@ -155,13 +166,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		// Cube vertices. Each vertex has a position and a color.
 		std::vector<VertexPositionColor> sphereVertices;
-		std::vector<unsigned short> sphereIndices;
+		std::vector<unsigned int> sphereIndices;
 
 		fillSphere(sphereVertices, sphereIndices);
 
 		const UINT vertexBufferSize = sizeof(VertexPositionColor) * sphereVertices.size();
 
-		const UINT indexBufferSize = sizeof(unsigned short) * sphereIndices.size();
+		const UINT indexBufferSize = sizeof(unsigned int) * sphereIndices.size();
 
 		// Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -191,7 +202,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the vertex buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA vertexData = {};
-			vertexData.pData = reinterpret_cast<BYTE*>(&*sphereVertices.begin());
+			vertexData.pData = reinterpret_cast<BYTE*>(&sphereVertices[0]);
 			vertexData.RowPitch = vertexBufferSize;
 			vertexData.SlicePitch = vertexData.RowPitch;
 
@@ -229,7 +240,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Upload the index buffer to the GPU.
 		{
 			D3D12_SUBRESOURCE_DATA indexData = {};
-			indexData.pData = reinterpret_cast<BYTE*>(&*sphereIndices.begin());
+			indexData.pData = reinterpret_cast<BYTE*>(&sphereIndices[0]);
 			indexData.RowPitch = indexBufferSize;
 			indexData.SlicePitch = indexData.RowPitch;
 
@@ -296,8 +307,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		m_vertexBufferView.SizeInBytes = sizeof(VertexPositionColor) * sphereVertices.size();
 
 		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.SizeInBytes = sizeof(unsigned short) * sphereIndices.size();
-		m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+		m_indexBufferView.SizeInBytes = sizeof(unsigned int) * sphereIndices.size();
+		m_indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 
 		// Wait for the command list to finish executing; the vertex/index buffers need to be uploaded to the GPU before the upload resources go out of scope.
 		m_deviceResources->WaitForGpu();
@@ -481,7 +492,7 @@ bool Sample3DSceneRenderer::Render()
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 		m_commandList->IASetIndexBuffer(&m_indexBufferView);
-		m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+		m_commandList->DrawIndexedInstanced(m_indexBufferView.SizeInBytes / sizeof(unsigned int), 1, 0, 0, 0);
 
 		// Indicate that the render target will now be used to present when the command list is done executing.
 		CD3DX12_RESOURCE_BARRIER presentResourceBarrier =
