@@ -24,8 +24,8 @@ const float PI = 3.1415927f;
 static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
 	DirectX::XMFLOAT3 center{ 0.0f,0.0f,0.0f };
 	float radius = 0.75f;
-	unsigned int rings = 15;
-	unsigned int sectors = 15;
+	unsigned int rings = 32;
+	unsigned int sectors = 32;
 
 	// Generate a sphere
 	const auto RingsRecip = 1.0f / (float)(rings - 1);
