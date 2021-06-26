@@ -24,8 +24,8 @@ const float PI = 3.1415927f;
 
 static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
 	float radius = 0.75f;
-	unsigned int rings = 5;
-	unsigned int sectors = 7;
+	unsigned int rings = 15;
+	unsigned int sectors = 15;
 
 	// Generate a sphere
 	const auto RingsRecip = 1.0f / (float)(rings - 1);
@@ -41,10 +41,10 @@ static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<u
 		const auto y = static_cast<float>(sin(-PI / 2 + PI * countRings * RingsRecip) * radius);
 
 		for (countSectors = 0; countSectors < sectors; countSectors++) {
-			const auto x = static_cast<float>(cos(2 * PI * countSectors * SectorsRecip)); // *sin(PI * countRings * RingsRecip));
-			const auto z = static_cast<float>(sin(2 * PI * countSectors * SectorsRecip)); // *sin(PI * countRings * RingsRecip));
+			const auto x = static_cast<float>(cos(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
+			const auto z = static_cast<float>(sin(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
 
-			*v++ = { { x * radius, y, z * radius }, {purple.x * abs(y),purple.y * abs(y), purple.z * abs(y)} };
+			*v++ = { { x * radius, y, z * radius }, purple };
 		}
 	}
 
@@ -492,7 +492,7 @@ bool Sample3DSceneRenderer::Render()
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 		m_commandList->IASetIndexBuffer(&m_indexBufferView);
-		m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+		m_commandList->DrawIndexedInstanced(m_indexBufferView.SizeInBytes / sizeof(unsigned int), 1, 0, 0, 0);
 
 		// Indicate that the render target will now be used to present when the command list is done executing.
 		CD3DX12_RESOURCE_BARRIER presentResourceBarrier =
