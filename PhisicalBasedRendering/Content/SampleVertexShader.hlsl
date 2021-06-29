@@ -36,7 +36,7 @@ PixelShaderInput main(VertexShaderInput input)
 	normal = mul(normal, model);
 	normal = mul(normal, view);
 	normal = mul(normal, projection);
-	output.normal = normalize(normal);
+	output.normal = normal;
 
 	output.lightPos = float3(0.2f, 0.75f, 1.25f);
 	output.view = float3(0.0f, 0.7f, 1.5f);

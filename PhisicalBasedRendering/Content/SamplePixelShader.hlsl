@@ -10,7 +10,7 @@ struct PixelShaderInput
 
 float Heaviside(float x) {
 	if (x > 0.0f) {
-		return 1.0f;
+		return x;
 	}
 	return 0.0f;
 }
@@ -24,10 +24,10 @@ float TrowbridgeReitz(float roughness2, float NdotH) {
 
 float innerVis(float roughness2, float3 normal, float3 halfway, float3 VorL) {
 	float top = Heaviside(dot(halfway, VorL));
-	float length = abs(dot(normal, VorL));
-	float beforeSqrt = roughness2 + pow((1 - roughness2), 2) * pow(dot(normal, VorL), 2);
+	float nDot = dot(normal, VorL);
+	float beforeSqrt = roughness2 + (1 - roughness2) * pow(nDot, 2);
 	float sqrted = sqrt(beforeSqrt);
-	return top / (length + sqrted);
+	return top / (abs(nDot) + sqrted);
 }
 
 float Visibility(float roughness2, float3 normal, float3 halfway, float3 view, float3 light) {
@@ -49,17 +49,18 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float metalness = 0.5f;
 	float roughness = 0.2f;
 
-	float3 color = { 0.68f, 0.18f, 0.68f };
+	float3 color = { 1.0f, 0.18f, 0.68f };
 	
+	float3 normal = normalize(input.normal);
 	float3 lightDir = normalize(input.lightPos - input.usablePos);
 	float3 viewDir = normalize(input.view - input.usablePos);	
 	float3 halfway = normalize(lightDir + viewDir);
 
 	float3 VdotH = dot(viewDir, halfway);
-	float specular = specular_brdf(pow(roughness, 2), input.normal, halfway, viewDir, lightDir);
+	float specular = specular_brdf(roughness * roughness, normal, halfway, viewDir, lightDir);
 	float3 specular3 = { specular , specular , specular };
 	float3 diffuse = diffuse_brdf(color);
-	float3 dielectric_brdf = lerp(diffuse, specular3, 0.04 + (1 - 0.04) * pow(1 - abs(VdotH), 5));
+	float3 dielectric_brdf = lerp(diffuse, specular3, 1 - roughness);
 
 	return float4 (dielectric_brdf, 1.0f);
 }
