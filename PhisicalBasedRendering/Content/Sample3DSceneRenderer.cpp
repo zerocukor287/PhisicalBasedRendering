@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "Sample3DSceneRenderer.h"
+#include "Sphere.h"
 
 #include "..\Common\DirectXHelper.h"
 #include <ppltasks.h>
@@ -19,51 +20,15 @@ Platform::String^ TrackingKey = "Tracking";
 
 XMVECTORF32 VeryDarkVeryGray = { { { 0.184313729f, 0.184313729f, 0.184313729f, 1.000000000f } } };
 
-const float PI = 3.1415927f;
-
 static void fillSphere(std::vector<VertexPositionColor>& vertices, std::vector<unsigned int>& indices) {
 	DirectX::XMFLOAT3 center{ 0.0f,0.0f,0.0f };
 	float radius = 0.75f;
 	unsigned int rings = 32;
 	unsigned int sectors = 32;
 
-	// Generate a sphere
-	const auto RingsRecip = 1.0f / (float)(rings - 1);
-	const auto SectorsRecip = 1.0f / (float)(sectors - 1);
-	unsigned int countRings, countSectors;
-
-	vertices.resize(rings * sectors);
-
-	auto v = vertices.begin();
-
-	// Calculate vertices' position
-	for (countRings = 0; countRings < rings; countRings++) {
-		const auto y = static_cast<float>(sin(-PI / 2 + PI * countRings * RingsRecip) * radius);
-
-		for (countSectors = 0; countSectors < sectors; countSectors++) {
-			const auto x = static_cast<float>(cos(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
-			const auto z = static_cast<float>(sin(2 * PI * countSectors * SectorsRecip) *sin(PI * countRings * RingsRecip));
-			DirectX::XMFLOAT3 point{ x * radius + center.x, y + center.y, z * radius + center.z };
-			DirectX::XMFLOAT3 normal{ x * radius, y, z * radius };
-			*v++ = { point, normal };
-		}
-	}
-
-	// Calculate indices 
-	indices.resize(rings * sectors * 6);
-	auto i = indices.begin();
-	for (countRings = 0; countRings < rings - 1; countRings++) {
-		for (countSectors = 0; countSectors < sectors - 1; countSectors++) {
-
-			*i++ = (countRings + 0) * sectors + countSectors;				// added for half-symmetry
-			*i++ = (countRings + 0) * sectors + (countSectors + 1);
-			*i++ = (countRings + 1) * sectors + (countSectors + 1);
-
-			*i++ = (countRings + 0) * sectors + countSectors;
-			*i++ = (countRings + 1) * sectors + (countSectors + 1);
-			*i++ = (countRings + 1) * sectors + countSectors;
-		}
-	}
+	Sphere sphere(center, radius, rings, sectors);
+	vertices = sphere.getVertices();
+	indices = sphere.getIndices();
 }
 
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
