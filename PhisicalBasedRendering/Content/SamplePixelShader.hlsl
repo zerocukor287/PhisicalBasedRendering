@@ -9,7 +9,7 @@ struct PixelShaderInput
 
 #define PI 3.1415926538
 
-float Heaviside(float x) {
+float heaviside(float x) {
 	if (x > 0.0f) {
 		return x;
 	}
@@ -19,21 +19,21 @@ float Heaviside(float x) {
 float TrowbridgeReitz(float roughness2, float NdotH) {
 	float NHR = NdotH * NdotH * (roughness2 - 1) + 1;
 	float denom = PI * NHR * NHR;
-	return roughness2 * Heaviside(NdotH) / denom;
+	return roughness2 * heaviside(NdotH) / denom;
 }
 
 float innerVis(float roughness2, float3 normal, float3 halfway, float3 VorL) {
 	float nDot = dot(normal, VorL);
 	float RNsqrt = sqrt(roughness2 + (1 - roughness2) * nDot * nDot);
-	return Heaviside(dot(halfway, VorL)) / (abs(nDot) + RNsqrt);
+	return heaviside(dot(halfway, VorL)) / (abs(nDot) + RNsqrt);
 }
 
-float Visibility(float roughness2, float3 normal, float3 halfway, float3 view, float3 light) {
+float visibility(float roughness2, float3 normal, float3 halfway, float3 view, float3 light) {
 	return innerVis(roughness2, normal, halfway, light) * innerVis(roughness2, normal, halfway, view);
 }
 
 float specular_brdf(float roughness2, float3 normal, float3 halfway, float3 view, float3 light) {
-	return Visibility(roughness2, normal, halfway, view, light) * TrowbridgeReitz(roughness2, dot(normal, halfway));
+	return visibility(roughness2, normal, halfway, view, light) * TrowbridgeReitz(roughness2, dot(normal, halfway));
 }
 
 float3 diffuse_brdf(float3 color) {
