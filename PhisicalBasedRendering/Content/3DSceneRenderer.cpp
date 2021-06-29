@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Sample3DSceneRenderer.h"
+#include "3DSceneRenderer.h"
 #include "Sphere.h"
 
 #include "..\Common\DirectXHelper.h"
@@ -83,11 +83,11 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	}
 
 	// Load shaders asynchronously.
-	auto createVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso").then([this](std::vector<byte>& fileData) {
+	auto createVSTask = DX::ReadDataAsync(L"VertexShader.cso").then([this](std::vector<byte>& fileData) {
 		m_vertexShader = fileData;
 	});
 
-	auto createPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso").then([this](std::vector<byte>& fileData) {
+	auto createPSTask = DX::ReadDataAsync(L"PixelShader.cso").then([this](std::vector<byte>& fileData) {
 		m_pixelShader = fileData;
 	});
 
