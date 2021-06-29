@@ -29,14 +29,14 @@ PixelShaderInput main(VertexShaderInput input)
 	pos = mul(pos, view);
 	pos = mul(pos, projection);
 	output.pos = pos;
-	output.usablePos = pos;
+	output.usablePos = pos.xyz;
 
 	float4 normal = float4(input.normal, 1.0f);
 
 	normal = mul(normal, model);
 	normal = mul(normal, view);
 	normal = mul(normal, projection);
-	output.normal = normal;
+	output.normal = normal.xyz;
 
 	output.lightPos = float3(0.2f, 0.75f, 1.25f);
 	output.view = float3(0.0f, 0.7f, 1.5f);

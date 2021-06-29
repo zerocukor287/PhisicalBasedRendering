@@ -136,9 +136,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		fillSphere(sphereVertices, sphereIndices);
 
-		const UINT vertexBufferSize = sizeof(VertexPositionColor) * sphereVertices.size();
+		const auto vertexBufferSize = sizeof(VertexPositionColor) * sphereVertices.size();
 
-		const UINT indexBufferSize = sizeof(unsigned int) * sphereIndices.size();
+		const auto indexBufferSize = sizeof(unsigned int) * sphereIndices.size();
 
 		// Create the vertex buffer resource in the GPU's default heap and copy vertex data into it using the upload heap.
 		// The upload resource must not be released until after the GPU has finished using it.
@@ -270,10 +270,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Create vertex/index buffer views.
 		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 		m_vertexBufferView.StrideInBytes = sizeof(VertexPositionColor);
-		m_vertexBufferView.SizeInBytes = sizeof(VertexPositionColor) * sphereVertices.size();
+		m_vertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(VertexPositionColor) * sphereVertices.size());
 
 		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.SizeInBytes = sizeof(unsigned int) * sphereIndices.size();
+		m_indexBufferView.SizeInBytes = static_cast<UINT>(sizeof(unsigned int) * sphereIndices.size());
 		m_indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 
 		// Wait for the command list to finish executing; the vertex/index buffers need to be uploaded to the GPU before the upload resources go out of scope.
