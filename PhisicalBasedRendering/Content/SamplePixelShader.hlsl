@@ -17,17 +17,15 @@ float Heaviside(float x) {
 }
 
 float TrowbridgeReitz(float roughness2, float NdotH) {
-	float nom = roughness2 * Heaviside(NdotH);
-	float denom = PI * pow(pow(NdotH, 2) * (roughness2 - 1) + 1, 2);
-	return nom / denom;
+	float NHR = NdotH * NdotH * (roughness2 - 1) + 1;
+	float denom = PI * NHR * NHR;
+	return roughness2 * Heaviside(NdotH) / denom;
 }
 
 float innerVis(float roughness2, float3 normal, float3 halfway, float3 VorL) {
-	float nom = Heaviside(dot(halfway, VorL));
 	float nDot = dot(normal, VorL);
-	float beforeSqrt = roughness2 + (1 - roughness2) * pow(nDot, 2);
-	float sqrted = sqrt(beforeSqrt);
-	return nom / (abs(nDot) + sqrted);
+	float RNsqrt = sqrt(roughness2 + (1 - roughness2) * nDot * nDot);
+	return Heaviside(dot(halfway, VorL)) / (abs(nDot) + RNsqrt);
 }
 
 float Visibility(float roughness2, float3 normal, float3 halfway, float3 view, float3 light) {
@@ -35,8 +33,7 @@ float Visibility(float roughness2, float3 normal, float3 halfway, float3 view, f
 }
 
 float specular_brdf(float roughness2, float3 normal, float3 halfway, float3 view, float3 light) {
-	float NdotH = dot(normal, halfway);
-	return Visibility(roughness2, normal, halfway, view, light) * TrowbridgeReitz(roughness2, NdotH);
+	return Visibility(roughness2, normal, halfway, view, light) * TrowbridgeReitz(roughness2, dot(normal, halfway));
 }
 
 float3 diffuse_brdf(float3 color) {
@@ -45,10 +42,8 @@ float3 diffuse_brdf(float3 color) {
 
 float4 main(PixelShaderInput input) : SV_TARGET
 {
-	float roughness = 0.1f;
+	float roughness = 0.25f;
 
-	float3 color = { 1.0f, 0.18f, 0.68f };
-	
 	float3 normal = normalize(input.normal);
 	float3 lightDir = normalize(input.lightPos - input.usablePos);
 	float3 viewDir = normalize(input.view - input.usablePos);	
@@ -56,7 +51,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	float specular = specular_brdf(roughness * roughness, normal, halfway, viewDir, lightDir);
 	float3 specular3 = { specular , specular , specular };
-	float3 diffuse = 0.5f * diffuse_brdf(color) / roughness;
+	float3 diffuse = 0.5f * diffuse_brdf(float3 (1.0f, 0.18f, 0.68f)) / roughness;
 	float3 dielectric_brdf = lerp(diffuse, specular3, 1 - roughness);
 
 	return float4 (dielectric_brdf, 1.0f);
